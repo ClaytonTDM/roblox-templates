@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Templates</title>
+    <style>
+        * {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-decoration: none;
+        }
+        /* Define styles for game containers */
+        .game-container {
+            display: inline-block;
+            width: 209px; /* Adjust as needed */
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer; /* Add cursor pointer to indicate clickable */
+        }
+
+        /* Define styles for game links */
+        .game-link {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+        }
+
+        /* Define styles for thumbnail images */
+        .thumbnail-img {
+            width: 208px;
+            height: 117px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="games-list"></div>
+
+    <script>
+        // Function to encode URL
+        function encodeURL(url) {
+            return encodeURIComponent(url);
+        }
+
+        // Fetch data from the URL using thingproxy.freeboard.io with limit parameter set to 50
+        fetch(`https://thingproxy.freeboard.io/fetch/${encodeURL('https://games.roblox.com/v2/users/998796/games')}?limit=50`)
+            .then(response => response.json())
+            .then(data => {
+                const gamesList = document.getElementById('games-list');
+
+                // Iterate through each game and create a link with thumbnail for it
+                data.data.forEach(game => {
+                    // Create the game container
+                    const gameContainer = document.createElement('a');
+                    gameContainer.className = 'game-container';
+                    gameContainer.href = `https://roblox.com/library/${game.rootPlace.id}`;
+                    gameContainer.setAttribute('target', '_blank'); // Open link in a new tab
+
+                    // Set onclick event to redirect to game link
+                    gameContainer.onclick = function() {
+                        window.open(gameContainer.href, '_blank');
+                    };
+
+                    // Create the game link
+                    const gameLink = document.createElement('div');
+                    gameLink.className = 'game-link';
+                    gameLink.textContent = game.name;
+                    gameContainer.appendChild(gameLink);
+
+                    // Fetch thumbnail
+                    fetch(`https://thingproxy.freeboard.io/fetch/https://thumbnails.roblox.com/v1/assets?assetIds=${game.rootPlace.id}&size=768x432&format=Png&isCircular=false`)
+                        .then(response => response.json())
+                        .then(thumbnailData => {
+                            if (thumbnailData.data && thumbnailData.data.length > 0) {
+                                const thumbnailUrl = thumbnailData.data[0].imageUrl;
+
+                                // Create thumbnail image element
+                                const thumbnailImg = document.createElement('img');
+                                thumbnailImg.className = 'thumbnail-img';
+                                thumbnailImg.src = thumbnailUrl;
+                                gameContainer.appendChild(thumbnailImg);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching thumbnail data:', error);
+                        });
+
+                    // Append the game container to the games list
+                    gamesList.appendChild(gameContainer);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    </script>
+</body>
+</html>
